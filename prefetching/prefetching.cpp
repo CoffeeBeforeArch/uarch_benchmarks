@@ -36,10 +36,11 @@ static void columnMajor(benchmark::State &s) {
   int N = 1 << s.range(0);
 
   // Create our input indices
+  // Small hack to treat the vector as a 2D matrix
   int stride = 1 << (N / 2);
   std::vector<int> v_in(N);
-  for(int i = 0; i < stride; i++ ) {
-    for(int j = 0; j < stride; j++) {
+  for (int i = 0; i < stride; i++) {
+    for (int j = 0; j < stride; j++) {
       v_in[i * stride + j] = j * stride + i;
     }
   }
@@ -107,6 +108,7 @@ static void randomPrefetch(benchmark::State &s) {
   // Profile a simple traversal with simple additions
   while (s.KeepRunning()) {
     for (int i = 0; i < N; i++) {
+      // Pre-fetch the next item
       __builtin_prefetch(&v_out[v_in[i + 1]]);
       v_out[v_in[i]] += i;
     }
@@ -114,7 +116,6 @@ static void randomPrefetch(benchmark::State &s) {
 }
 // Register the benchmark
 BENCHMARK(randomPrefetch)->DenseRange(20, 24, 2)->Unit(benchmark::kMillisecond);
-
 
 // Benchmark main functions
 BENCHMARK_MAIN();
