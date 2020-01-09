@@ -17,18 +17,50 @@ static void rowMajor(benchmark::State &s) {
   std::iota(begin(v_in), end(v_in), 0);
 
   // Create an output vector
-  std::vector<int> v_out;
-  v_out.resize(N * N);
+  std::vector<int> v_out(N * N);
 
   // Profile a simple traversal with simple additions
   while (s.KeepRunning()) {
     for (int i = 0; i < N * N; i++) {
-      v_out[v_in[i]] += i;
+      v_out[v_in[i]]++;
     }
   }
 }
 // Register the benchmark
 BENCHMARK(rowMajor)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
+
+// Accesses an array sequentially in row-major fashion
+static void cacheLine(benchmark::State &s) {
+  // Input/output vector size
+  int N = 1 << s.range(0);
+
+  // Cache line size
+  const int stride = 64 / sizeof(int);
+
+  // Create our input indices
+  std::vector<int> v_in;
+  v_in.reserve(N * N);
+
+  // For each element in a cache line
+  for (int i = 0; i < stride; i++) {
+    // For each cache line in the array
+    for (int j = 0; j < (N * N / stride); j++) {
+      v_in.push_back(j * stride + i);
+    }
+  }
+
+  // Create an output vector
+  std::vector<int> v_out(N * N);
+
+  // Profile a simple traversal with simple additions
+  while (s.KeepRunning()) {
+    for (int i = 0; i < N * N; i++) {
+      v_out[v_in[i]]++;
+    }
+  }
+}
+// Register the benchmark
+BENCHMARK(cacheLine)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
 
 // Accesses an array sequentially in row-major fashion
 static void columnMajor(benchmark::State &s) {
@@ -44,13 +76,12 @@ static void columnMajor(benchmark::State &s) {
   }
 
   // Create an output vector
-  std::vector<int> v_out;
-  v_out.resize(N * N);
+  std::vector<int> v_out(N * N);
 
   // Profile a simple traversal with simple additions
   while (s.KeepRunning()) {
     for (int i = 0; i < N * N; i++) {
-      v_out[v_in[i]] += i;
+      v_out[v_in[i]]++;
     }
   }
 }
@@ -72,13 +103,12 @@ static void random(benchmark::State &s) {
   std::shuffle(begin(v_in), end(v_in), urng);
 
   // Create an output vector
-  std::vector<int> v_out;
-  v_out.resize(N * N);
+  std::vector<int> v_out(N * N);
 
   // Profile a simple traversal with simple additions
   while (s.KeepRunning()) {
     for (int i = 0; i < N * N; i++) {
-      v_out[v_in[i]] += i;
+      v_out[v_in[i]]++;
     }
   }
 }
@@ -100,15 +130,14 @@ static void randomPrefetch(benchmark::State &s) {
   std::shuffle(begin(v_in), end(v_in), urng);
 
   // Create an output vector
-  std::vector<int> v_out;
-  v_out.resize(N * N);
+  std::vector<int> v_out(N * N);
 
   // Profile a simple traversal with simple additions
   while (s.KeepRunning()) {
     for (int i = 0; i < N * N; i++) {
       // Pre-fetch the next item
       __builtin_prefetch(&v_out[v_in[i + 1]]);
-      v_out[v_in[i]] += i;
+      v_out[v_in[i]]++;
     }
   }
 }
