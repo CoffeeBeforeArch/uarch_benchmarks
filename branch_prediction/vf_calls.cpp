@@ -42,7 +42,7 @@ static void vf_sorted(benchmark::State& s) {
     }
   }
 }
-BENCHMARK(vf_sorted);
+BENCHMARK(vf_sorted)->Unit(benchmark::kMicrosecond);
 
 // Benchmark where ordering of types is randomized
 static void vf_unsorted(benchmark::State& s) {
@@ -72,7 +72,7 @@ static void vf_unsorted(benchmark::State& s) {
   }
 }
 // Register the benchmark
-BENCHMARK(vf_unsorted);
+BENCHMARK(vf_unsorted)->Unit(benchmark::kMicrosecond);
 
 // Benchmark where ordering of types is striped
 static void vf_striped(benchmark::State& s) {
@@ -99,7 +99,7 @@ static void vf_striped(benchmark::State& s) {
   }
 }
 // Register the benchmark
-BENCHMARK(vf_striped);
+BENCHMARK(vf_striped)->Unit(benchmark::kMicrosecond);
 
 // Main function
 BENCHMARK_MAIN();
