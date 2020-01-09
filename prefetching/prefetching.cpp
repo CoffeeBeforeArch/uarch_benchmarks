@@ -135,8 +135,8 @@ static void randomPrefetch(benchmark::State &s) {
   // Profile a simple traversal with simple additions
   while (s.KeepRunning()) {
     for (int i = 0; i < N * N; i++) {
-      // Pre-fetch the next item
-      __builtin_prefetch(&v_out[v_in[i + 1]]);
+      // Pre-fetch an item for later
+      __builtin_prefetch(&v_out[v_in[i + 8]]);
       v_out[v_in[i]]++;
     }
   }
