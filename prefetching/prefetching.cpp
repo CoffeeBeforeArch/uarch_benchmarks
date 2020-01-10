@@ -38,14 +38,15 @@ static void cacheLine(benchmark::State &s) {
   const int stride = 64 / sizeof(int);
 
   // Create our input indices
-  std::vector<int> v_in;
-  v_in.reserve(N * N);
+  std::vector<int> v_in(N * N);
 
   // For each element in a cache line
+  int index = 0;
   for (int i = 0; i < stride; i++) {
     // For each cache line in the array
     for (int j = 0; j < (N * N / stride); j++) {
-      v_in.push_back(j * stride + i);
+      v_in[index] = j * stride + i;
+      index++;
     }
   }
 
