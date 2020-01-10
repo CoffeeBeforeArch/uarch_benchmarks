@@ -14,7 +14,7 @@ struct NoVF {
 };
 
 int main() {
-  std::cout << "sizeof() = " << sizeof(VF) << '\n';
-  std::cout << "sizeof() = " << sizeof(NoVF) << '\n';
+  std::cout << "sizeof(VF) = " << sizeof(VF) << '\n';
+  std::cout << "sizeof(NoVF) = " << sizeof(NoVF) << '\n';
   return 0;
 }
