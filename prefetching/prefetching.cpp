@@ -2,6 +2,7 @@
 // By: Nick from CoffeeBeforeArch
 
 #include <benchmark/benchmark.h>
+#include <algorithm>
 #include <cstdlib>
 #include <numeric>
 #include <random>
@@ -28,6 +29,30 @@ static void rowMajor(benchmark::State &s) {
 }
 // Register the benchmark
 BENCHMARK(rowMajor)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
+
+// Accesses an array sequentially in reverse row-major
+static void reverse(benchmark::State &s) {
+  // Input/output vector size
+  int N = 1 << s.range(0);
+
+  // Create our input indices
+  std::vector<int> v_in(N * N);
+  std::iota(begin(v_in), end(v_in), 0);
+  std::reverse(begin(v_in), end(v_in));
+
+  // Create an output vector
+  std::vector<int> v_out(N * N);
+
+  // Profile a simple traversal with simple additions
+  while (s.KeepRunning()) {
+    for (int i = 0; i < N * N; i++) {
+      // Pre-fetch an item for later
+      v_out[v_in[i]]++;
+    }
+  }
+}
+// Register the benchmark
+BENCHMARK(reverse)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
 
 // Accesses an array sequentially in row-major fashion
 static void cacheLine(benchmark::State &s) {
