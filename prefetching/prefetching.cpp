@@ -89,6 +89,43 @@ static void cacheLine(benchmark::State &s) {
 BENCHMARK(cacheLine)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
 
 // Accesses an array sequentially in row-major fashion
+static void cacheLineReverse(benchmark::State &s) {
+  // Input/output vector size
+  int N = 1 << s.range(0);
+
+  // Cache line size
+  const int stride = 64 / sizeof(int);
+
+  // Create our input indices
+  std::vector<int> v_in(N * N);
+
+  // For each element in a cache line
+  int index = 0;
+  for (int i = 0; i < stride; i++) {
+    // For each cache line in the array
+    for (int j = 0; j < (N * N / stride); j++) {
+      v_in[index] = j * stride + i;
+      index++;
+    }
+  }
+
+  // Reverse the indices
+  std::reverse(begin(v_in), end(v_in));
+
+  // Create an output vector
+  std::vector<int> v_out(N * N);
+
+  // Profile a simple traversal with simple additions
+  while (s.KeepRunning()) {
+    for (int i = 0; i < N * N; i++) {
+      v_out[v_in[i]]++;
+    }
+  }
+}
+// Register the benchmark
+BENCHMARK(cacheLineReverse)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
+
+// Accesses an array in column-major order
 static void columnMajor(benchmark::State &s) {
   // Input/output vector size
   int N = 1 << s.range(0);
@@ -114,7 +151,7 @@ static void columnMajor(benchmark::State &s) {
 // Register the benchmark
 BENCHMARK(columnMajor)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
 
-// Accesses an array sequentially in row-major fashion
+// Accesses an array in randomized order
 static void random(benchmark::State &s) {
   // Input/output vector size
   int N = 1 << s.range(0);
@@ -141,7 +178,7 @@ static void random(benchmark::State &s) {
 // Register the benchmark
 BENCHMARK(random)->DenseRange(10, 12)->Unit(benchmark::kMillisecond);
 
-// Accesses an array sequentially in row-major fashion
+// Accesses in a random order but try pre-fetching
 static void randomPrefetch(benchmark::State &s) {
   // Input/output vector size
   int N = 1 << s.range(0);
@@ -162,7 +199,7 @@ static void randomPrefetch(benchmark::State &s) {
   while (s.KeepRunning()) {
     for (int i = 0; i < N * N; i++) {
       // Pre-fetch an item for later
-      __builtin_prefetch(&v_out[v_in[i + 8]]);
+      __builtin_prefetch(&v_out[v_in[i + 7]]);
       v_out[v_in[i]]++;
     }
   }
